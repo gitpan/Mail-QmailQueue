@@ -1,35 +1,58 @@
-Mail/QmailQueue version 0.01
-============================
+NAME
+    Mail::QmailQueue - Perl extension to operate qmail-queue directry
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+SYNOPSIS
+      use Mail::QmailQueue;
+      use Mime::Lite;
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+      # generate mail.
+      my $mime = MIME::Lite->new(
+                                 ...
+                                );
 
-INSTALLATION
+      # send mail via qmail-queue.
+      my $qmail = Mail::QmailQueue->new;
+      $qmail->sender($ENV{USER});
+      $qmail->recipient('postmaster@foo.bar');
+      $qmail->data($mime->as_string);
+      $qmail->send;
 
-To install this module type the following:
+DESCRIPTION
+    This module operate qmail-queue directly, so, you can send mail more
+    faster than the case where SMTP is used.
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+CONSTRUTOR
+    new(QMAIL_QUEUE)
+        construtor for Mail::QmailQueue object. QMAIL_QUEUE is location of
+        qmail-queue program (default /var/qmail/bin/qmail-queue)
 
-DEPENDENCIES
+METHODS
+    sender(ADDRESS)
+        set sender's mail address.
 
-This module requires these other modules and libraries:
+    mail(ADDRESS)
+        Synonym for sender.
 
-  blah blah blah
+    recipient(ADDRESS [,ADDRESS, [...]])
+        set recipient's mail address.
 
-COPYRIGHT AND LICENCE
+    to(ADDRESS [,ADDRESS, [...]])
+        Synonym for recipient.
 
-Put the correct copyright and licence information here.
+    data(DATA)
+        set mail message. (including header.)
 
-Copyright (C) 2001 A. U. Thor blah blah blah
+    send
+        send mail.
+
+AUTHOR
+    IKEBE Tomohiro <ikebe@edge.co.jp>
+
+SEE ALSO
+    qmail. http://cr.yp.to/qmail.html qmail-queue man page.
+
+COPYRIGHT
+    Copyright(C) 2001 IKEBE Tomohiro All rights reserved. This program is
+    free software; you can redistribute it and/or modify it under the same
+    terms as Perl itself.
 
