@@ -1,19 +1,19 @@
 package Mail::QmailQueue;
-
+# $Id: QmailQueue.pm,v 1.2 2002/04/05 13:07:58 ikechin Exp $
 use strict;
 use vars qw($VERSION);
 use IO::Pipe;
 use IO::Handle;
 use Carp;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub new {
     my $class = shift;
     my $bin = shift || "/var/qmail/bin/qmail-queue";
     my $self = {
-		bin => $bin
-	       };
+	bin => $bin
+    };
     bless $self,$class;
 }
   
@@ -25,10 +25,7 @@ sub mail {
     $self->{mail};
 }
 
-sub sender {
-    my $self = shift;
-    $self->mail(@_);
-}
+*sender = \&mail;
 
 sub recipient {
     my $self = shift;
@@ -42,17 +39,23 @@ sub recipient {
     $self->{recipient};
 }
 
-sub to {
-    my $self = shift;
-    $self->recipient(@_);
-}
+*to = \&recipient;
 
 sub data {
     my $self = shift;
     if ($_[0]) {
-	$self->{data} = shift;
+	my $data = $_[0];
+	if (ref($data) eq 'ARRAY') {
+	    for my $d(@{$data}) {
+		$d =~ s/\r\n/\n/g;
+		$self->{data} .= $d;
+	    }
+	}
+	else {
+	    $data =~ s/\r\n/\n/g;
+	    $self->{data} .= $data;
+	}
     }
-    $self->{data} =~ s/\r\n/\n/g;
     $self->{data};
 }
 
@@ -72,7 +75,7 @@ sub send {
 	    carp "please specify $key";
 	}
     }
-    
+    $self->{data} .= "\n" unless $self->{data} =~ m/\n$/s;
     if (my $pid = fork) {
 	$data->writer;
 	$addr->writer;
@@ -126,8 +129,8 @@ Mail::QmailQueue - Perl extension to operate qmail-queue directly
 
   # generate mail.
   my $mime = MIME::Lite->new(
-			     ...
-			    );
+      #...
+  );
 
   # send mail via qmail-queue.
   my $qmail = Mail::QmailQueue->new;
@@ -176,6 +179,9 @@ Synonym for recipient.
 =item data(DATA)
 
 set mail message. (including header.)
+DATA can be either a scalar or a ref to an array of scalars.
+
+if you call this method twice or more. DATA will be appended.
 
 =item send
 
@@ -194,7 +200,7 @@ qmail-queue man page.
 
 =head1 COPYRIGHT
 
-Copyright(C) 2001 IKEBE Tomohiro All rights reserved.
+Copyright(C) 2002 IKEBE Tomohiro All rights reserved.
 This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself. 
 
 =cut
